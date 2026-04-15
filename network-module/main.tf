@@ -127,7 +127,7 @@ resource "aws_nat_gateway" "nat" {
     Name = "${var.vpc_name}-nat-gw-${count.index + 1}"
   }
 }
-
+  
 #route for the route to table
 resource "aws_route" "private" {
   count                  = var.need_nat_gateway ? length(var.private_subnet_data) : 0
