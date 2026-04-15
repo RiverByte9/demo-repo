@@ -63,13 +63,12 @@ resource "aws_subnet" "private" {
   }
 }
 
-# private route table (one per NAT gateway for HA)
+# private route table
 resource "aws_route_table" "private" {
-  count  = var.need_nat_gateway ? (var.need_single_nat_gateway ? 1 : length(var.public_subnet_data)) : 1
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "${var.vpc_name}-private-rt-${count.index + 1}"
+    Name = "${var.vpc_name}-private-rt"
   }
 }
 
@@ -77,7 +76,7 @@ resource "aws_route_table" "private" {
 resource "aws_route_table_association" "private" {
   count          = length(var.private_subnet_data)
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = var.need_nat_gateway && !var.need_single_nat_gateway ? aws_route_table.private[count.index % length(aws_route_table.private)].id : aws_route_table.private[0].id
+  route_table_id = aws_route_table.private.id
 }
 
 # elastic ip for nat gateway
@@ -101,12 +100,12 @@ resource "aws_nat_gateway" "nat" {
   }
 }
 
-# route for NAT gateway in private route tables
+# route for NAT gateway in private route table
 resource "aws_route" "private" {
-  count                  = var.need_nat_gateway ? (var.need_single_nat_gateway ? 1 : length(var.public_subnet_data)) : 0
-  route_table_id         = aws_route_table.private[count.index].id
+  count                  = var.need_nat_gateway ? 1 : 0
+  route_table_id         = aws_route_table.private.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat[count.index].id
+  nat_gateway_id         = aws_nat_gateway.nat[0].id
 }
 
 
