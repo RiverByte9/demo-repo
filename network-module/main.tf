@@ -63,7 +63,7 @@ resource "aws_subnet" "private" {
   }
 }
 
-# private route table
+# private route table  
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
